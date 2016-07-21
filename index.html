@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+
+<title>Securing Routes with Redux, React Router, and Higher Order Components</title>
+
+<meta name="description" content="">
+<meta name="author" content="Matt Russell">
+<meta name="generator" content="reveal-ck 3.3.0">
+
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+<link rel="stylesheet" href="css/reveal.css">
+<link rel="stylesheet" href="css/theme/night.css" id="theme">
+
+<!-- Code syntax highlighting -->
+<link rel="stylesheet" href="lib/css/zenburn.css">
+
+<link rel="stylesheet" href="css/reveal-ck.css">
+
+<link rel="stylesheet" href="css/custom.css">
+
+<!-- Printing and PDF exports -->
+<script>
+  var link = document.createElement( 'link' );
+  link.rel = 'stylesheet';
+  link.type = 'text/css';
+  link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+  document.getElementsByTagName( 'head' )[0].appendChild( link );
+</script>
+
+<!--[if lt IE 9]>
+<script src="lib/js/html5shiv.js"></script>
+<![endif]-->
+
+  </head>
+
+  <body>
+    <div class="reveal">
+  <!-- Any section element inside of this container is displayed as a slide -->
+  <div class="slides">
+    <section>
+  <h2>
+    Securing Routes with Redux, React Router, and Higher Order Components
+  </h2>
+  <p>
+    by Matt Russell
+  </p>
+</section>
+<section>
+  <section>
+    <h2>
+      What Does Higher Order Mean?
+    </h2>
+  </section>
+  <section>
+    <h2>
+      Higher Order Functions
+    </h2>
+    <q>A function that either takes a function as an argument, returns a function, or both</q><br><br>
+    <p>
+      Very common in Functional Programming Languages
+    </p>
+    <p>
+      JS programmers use them every day (map, forEach, filter)
+    </p>
+  </section>
+  <section>
+    <h2>
+      Higher Order Functions
+    </h2>
+    <pre><code>function add(x, y) {
+  return x + y;
+}
+
+function multiply(x, y) {
+  return x * y;
+}</code></pre>
+    <p>
+      Add logging functionality to each function
+    </p>
+    <pre><code>function addAndLog(x, y) {
+  var result = x + y;
+  console.log('result:', result);
+  return result;
+}
+
+function multiplyAndLog(x, y) {
+  var result = x * y;
+  console.log('result:', result);
+  return result;
+}</code><br><small>Example From Dan Abramov's React blog post - "Mixins Considered Harmful"</small></pre>
+  </section>
+  <section>
+    <h2>
+      Higher Order Functions
+    </h2>
+    <pre><code>function add(x, y) {
+  return x + y;
+}
+
+function multiply(x, y) {
+  return x * y;
+}</code></pre>
+    <p>
+      An alternative...
+    </p>
+    <pre><code>function withLogging(wrappedFunction) {
+  return function(x, y) {
+    // ... that calls the original function
+    var result = wrappedFunction(x, y);
+    // ... but also logs its result!
+    console.log('result:', result);
+    return result;
+  };
+}
+
+// Equivalent to writing addAndLog by hand:
+var addAndLog = withLogging(add);
+
+// Equivalent to writing multiplyAndLog by hand:
+var multiplyAndLog = withLogging(multiply);</code><br><small>Example From Dan Abramov's React blog post - "Mixins Considered Harmful"</small></pre>
+  </section>
+  <section>
+    <h2>
+      Higher Order Components
+    </h2>
+    <q>A Function that <strike>either</strike> takes a <strike>Function</strike> <b>Component</b> as an argument and
+      returns a <strike>Function</strike> <b>Component</b> <strike>or both</strike></q>
+  </section>
+  <section>
+    <h2>
+      Higher Order Components
+    </h2>
+    <p>
+      Enhance a component with statically defined props:
+    </p>
+    <pre><code>function enhanceComponent(WrappedComponent, addedProps) {
+  return class EnhancedComponent extends Component {
+
+    render() {
+      return &lt;WrappedComponent {...this.props} {...addedProps}/&gt;;
+    }
+  }
+}
+
+class MyInput extends Component {
+  render() {
+    return &lt;input type='text' label='My Input' { ...this.props }/&gt;;
+  }
+}
+
+&lt;MyInput defaultValue='Cool Talk'/&gt;;
+
+const ReadOnlyInput = enchanceComponent(WrappedComponent, { readOnly: true });
+&lt;ReadOnlyInput defaultValue='Cool Talk'/&gt;;</code></pre>
+  </section>
+  <section>
+    <h2>
+      Higher Order Components
+    </h2>
+    <p>
+      With HOCs you can:
+    </p>
+    <ul>
+      <li>
+        Share common functionality across multiple components
+      </li>
+      <li>
+        Hide business logic from presentational component
+      </li>
+      <li>
+        Apply to ES6 Classes, ES5 createClass or function components
+      </li>
+    </ul>
+    <p>
+      You've probably used one already!
+    </p>
+    <pre><code>import { connect } from 'react-redux'; // HOC!
+import { DragSource } from 'react-dnd'; // HOC!
+import { Dimensions } from 'react-dimensions'; // HOC!
+import { UserAuthWrapper } from 'redux-auth-wrapper' // More on this HOC later!</code></pre>
+  </section>
+</section>
+<section>
+  <section>
+    <h2>
+      React Router
+    </h2>
+  </section>
+  <section>
+    <h2>
+      React Router Basics
+    </h2>
+    <p>
+      Build nested UIs based on URL matching
+    </p>
+    <p>
+      Swap in and out various components in response to URL changes
+    </p>
+    <p>
+      JSX syntax for route definitions (also plain JS objects)
+    </p>
+    <pre><code>&lt;Route path="/" component={App}&gt;
+  &lt;Route path="login" component={Login}/&gt;
+  &lt;Route path="products" component={Products}&gt;
+    &lt;Route path=":productId" component={ProductDetails}/&gt;
+  &lt;/Route&gt;
+  &lt;Route path="admin" component={Admin}/&gt;
+&lt;/Route&gt;</code></pre>
+  </section>
+  <section>
+    <h3>
+      Ideal Authentication &amp; Authorization
+    </h3>
+    <ol>
+      <li>
+        Authentication - Only logged in users to the products page
+      </li>
+      <li>
+        Authorization - Only administrators to the admin page
+      </li>
+      <li>
+        Revoking authentication/authorization redirects
+      </li>
+      <li>
+        Component logic is separate from Auth logic
+      </li>
+      <li>
+        Deep linking with redirection support after login
+      </li>
+    </ol>
+    <pre><code>&lt;Route path="/" component={App}&gt;
+  &lt;Route path="login" component={Login}/&gt;
+  &lt;Route path="products" component={Products}&gt;
+    &lt;Route path=":productId" component={ProductDetails}/&gt;
+  &lt;/Route&gt;
+  &lt;Route path="admin" component={Admin}/&gt;
+&lt;/Route&gt;</code></pre>
+  </section>
+</section>
+<section>
+  <section>
+    <h2>
+      Redux
+    </h2>
+  </section>
+  <section>
+    <h2>
+      Redux Basics
+    </h2>
+    <ul>
+      <li>
+        State of your app is stored in an object tree inside a single store
+      </li>
+      <li>
+        The only way to change the state tree is by emitting an action
+      </li>
+      <li>
+        An action is just plain JS object describing what happened
+      </li>
+      <li>
+        Reducers specify how the actions transform the state tree
+      </li>
+      <li>
+        Reducers are pure functions, without side effects
+      </li>
+    </ul>
+    <br><br><small>From <a href="http://redux.js.org/">http://redux.js.org/</a></small>
+  </section>
+  <section>
+    <h3>
+      Redux Constants, Actions, and Reducers
+    </h3>
+    <pre><code style="max-height:700px">// Redux Constants
+const USER_LOGGED_IN  = 'USER_LOGGED_IN';
+const USER_LOGGED_OUT = 'USER_LOGGED_OUT';
+
+// Redux actions
+function login(userData) {
+  return {
+    type: USER_LOGGED_IN,
+    payload: userData,
+  };
+}
+
+function logout() {
+  return {
+    type: USER_LOGGED_OUT,
+  };
+}
+
+// User Data Reducer
+function userReducer(state = null, { type, payload }) {
+  if (type === USER_LOGGED_IN) {
+    return payload;
+  }
+  if (type === USER_LOGGED_OUT) {
+    return null;
+  }
+  return state;
+}</code></pre>
+  </section>
+  <section>
+    <h2>
+      React With Redux
+    </h2>
+    <p>Access state inside Components and dispatch actions with <code>connect</code>
+    </p>
+    <pre><code>import { connect } from 'react-redux';</code></pre>
+    <p><code>connect</code> is an HOC!
+    </p>
+    <pre><code>function mapStateToProps(state) {
+  return {
+    user: state.user,
+  };
+}
+
+// MyComponent will receive the prop 'user' from the state
+connect(mapStateToProps)(MyComponent)</code></pre>
+    <p>Connect takes a function, often named <code>mapStateToProps</code>
+    </p>
+    <p><code>mapStateToProps</code> is also referred to as a selector,
+    </p>
+    <p>
+      because it <i>selects</i> data from the store
+    </p>
+  </section>
+</section>
+<section>
+  <section>
+    <h2>
+      Building the HOC
+    </h2>
+  </section>
+  <section>
+    <h3>
+      Basic Authentication HOC
+    </h3>
+    <pre><code style="max-height:700px">function requiresAuthentication(WrappedComponent) {
+  class AuthenticationWrapper extends Component {
+    static contextTypes = {
+      router: React.PropTypes.object
+    }
+
+    componentWillMount() {
+      if (this.props.user === null) {
+        this.context.router.replace('/login');
+      }
+    }
+
+    componentWillReceiveProps(nextProps) {
+      if (this.props.user !== nextProps.user &amp;&amp; nextProps.user === null) {
+        this.context.router.replace('/login');
+      }
+    }
+
+    render() {
+      return this.props.user ? &lt;WrappedComponent {...this.props}/&gt; : null;
+    }
+  }
+
+  function mapStateToProps(state) {
+    return { user: state.user };
+  }
+
+  return connect(mapStateToProps)(AuthenticationWrapper);
+}</code></pre>
+  </section>
+  <section>
+    <h2>
+      Using the HOC
+    </h2>
+    <p>
+      Apply in the routes definition
+    </p>
+    <pre><code>&lt;Route path="/" component={App}&gt;
+  &lt;Route path="login" component={Login}/&gt;
+  &lt;Route path="products" component={requiresAuthentication(Products)}&gt;
+    &lt;Route path=":productId" component={ProductDetails}/&gt;
+  &lt;/Route&gt;
+  &lt;Route path="admin" component={Admin}/&gt;
+&lt;/Route&gt;</code></pre>
+    <p>
+      Or apply in the component definition
+    </p>
+    <pre><code>class Products extends Component {
+ ...
+}
+
+export default requiresAuthentication(Products);</code></pre>
+  </section>
+</section>
+<section>
+  <section>
+    <h2>
+      Redux Auth Wrapper
+    </h2>
+  </section>
+  <section>
+    <h2>
+      Basic Configuration Example
+    </h2>
+    <pre><code>const UserIsAuthenticated = UserAuthWrapper({
+  authSelector: state =&gt; state.user,
+});
+
+&lt;Route path="products" component={UserIsAuthenticated(Products)}&gt;</code></pre>
+    <p>Redirects when <code>authSelector</code> returns <code>{}</code> or <code>null</code>
+    </p>
+    <p>Redirects to <code>/login</code> when <code>state.user</code> is null
+    </p>
+    <p>Appends a query param of <code>redirect</code> with the original url
+    </p>
+  </section>
+  <section>
+    <h2>
+      Advanced Configuration
+    </h2>
+    <pre><code>// Take the regular authentication &amp; redirect to login from before
+const UserIsAuthenticated = UserAuthWrapper({
+  authSelector: state =&gt; state.user,
+});
+// Admin Authorization, redirects non-admins to /products and without redirect param
+const UserIsAdmin = UserAuthWrapper({
+  authSelector: state =&gt; state.user,
+  failureRedirectPath: '/products',
+  predicate: user =&gt; user.isAdmin,
+  allowRedirectBack: false
+});
+// Nesting of Higher Order Components!!
+&lt;Route path="admin" component={UserIsAuthenticated(UserIsAdmin(Admin))}&gt;</code></pre>
+    <p>
+      Order of the nesting is important
+    </p>
+    <lu>
+      <li>Unauthenticated Users redirected to <code>/login</code> before admin check
+      </li>
+      <li>Otherwise Admins sent to <code>/products</code> after completing their login
+      </li>
+    </lu>
+  </section>
+  <section>
+    <h2>
+      Demo
+    </h2>
+  </section>
+</section>
+<section>
+  <h2>
+    Questions?
+  </h2>
+</section>
+<section>
+  <h2>
+    Useful Resources
+  </h2>
+  <p>
+    <a href="https://github.com/mjrussell/redux-auth-wrapper">redux-auth-wrapper</a>
+  </p>
+  <p>
+    <a href="https://medium.com/@dan_abramov/mixins-are-dead-long-live-higher-order-components-94a0d2f9e750#.1b3k4xriq">Mixins Are Dead. Long Live Composition</a>
+  </p>
+  <p>
+    <a href="https://facebook.github.io/react/blog/2016/07/13/mixins-considered-harmful.html">Mixins Considered Harmful</a>
+  </p>
+</section>
+
+  </div>
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+
+<script>
+  (function() {
+  function extend( a, b ) {
+    for(var i in b) {
+      a[i] = b[i];
+    }
+  }
+  var baseOptions = {
+    transition: 'page',
+
+    dependencies: [
+      { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+      { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+      { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+      { src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+      { src: 'plugin/zoom-js/zoom.js', async: true },
+      { src: 'plugin/notes/notes.js', async: true }
+    ]
+  };
+  var configOptions = {"controls":true,"progress":true,"history":true,"center":true}
+  var initializeOptions = {};
+  extend(initializeOptions, baseOptions);
+  extend(initializeOptions, configOptions);
+  Reveal.initialize(initializeOptions);
+})();
+
+</script>
+
+  </body>
+</html>

@@ -165,9 +165,9 @@ section
   section
     h2 Redux Basics
     ul
-      li State of your app is stored in an object tree inside a single store
+      li Entire State of your app is an object tree inside a single store
       li The only way to change the state tree is by emitting an action
-      li An action is just plain JS object describing what happened
+      li Actions are plain JS object describing what happened
       li Reducers specify how the actions transform the state tree
       li Reducers are pure functions, without side effects
     br
@@ -222,7 +222,7 @@ section
 
           // MyComponent will receive the prop 'user' from the state
           connect(mapStateToProps)(MyComponent)
-    p Connect takes a function, often named <code>mapStateToProps</code>
+    p <code>Connect</code> takes a function, often named <code>mapStateToProps</code>
     p <code>mapStateToProps</code> is also referred to as a selector,
     p because it <i>selects</i> data from the store
 
@@ -303,8 +303,9 @@ section
 
           &lt;Route path="products" component={UserIsAuthenticated(Products)}&gt;
     p Redirects when <code>authSelector</code> returns <code>{}</code> or <code>null</code>
-    p Redirects to <code>/login</code> when <code>state.user</code> is null
+    p Redirects to <code>/login</code> by default
     p Appends a query param of <code>redirect</code> with the original url
+    pre <code>http://localhost:8080/login?redirect=%2fproducts</code>
 
   section
     h2 Advanced Configuration

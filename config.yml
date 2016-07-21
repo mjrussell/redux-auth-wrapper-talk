@@ -1,0 +1,4 @@
+theme:      "night"
+transition: "page"
+author:     "Matt Russell"
+title:      "Securing Routes with Redux, React Router, and Higher Order Components"

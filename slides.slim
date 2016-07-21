@@ -1,0 +1,345 @@
+section
+  h2 Securing Routes with Redux, React Router, and Higher Order Components
+  p
+      | by Matt Russell
+
+section
+  section
+    h2 What Does Higher Order Mean?
+
+  section
+    h2 Higher Order Functions
+    q A function that either takes a function as an argument, returns a function, or both
+    br
+    br
+    p Very common in Functional Programming Languages
+    p JS programmers use them every day (map, forEach, filter)
+
+  section
+    h2 Higher Order Functions
+    pre
+      code
+        | function add(x, y) {
+            return x + y;
+          }
+
+          function multiply(x, y) {
+            return x * y;
+          }
+    p Add logging functionality to each function
+    pre
+      code
+        | function addAndLog(x, y) {
+            var result = x + y;
+            console.log('result:', result);
+            return result;
+          }
+
+          function multiplyAndLog(x, y) {
+            var result = x * y;
+            console.log('result:', result);
+            return result;
+          }
+      br
+      small Example From Dan Abramov's React blog post - "Mixins Considered Harmful"
+
+  section
+    h2 Higher Order Functions
+    pre
+      code
+        | function add(x, y) {
+            return x + y;
+          }
+
+          function multiply(x, y) {
+            return x * y;
+          }
+    p An alternative...
+    pre
+      code
+        | function withLogging(wrappedFunction) {
+            return function(x, y) {
+              // ... that calls the original function
+              var result = wrappedFunction(x, y);
+              // ... but also logs its result!
+              console.log('result:', result);
+              return result;
+            };
+          }
+
+          // Equivalent to writing addAndLog by hand:
+          var addAndLog = withLogging(add);
+
+          // Equivalent to writing multiplyAndLog by hand:
+          var multiplyAndLog = withLogging(multiply);
+      br
+      small Example From Dan Abramov's React blog post - "Mixins Considered Harmful"
+
+  section
+    h2 Higher Order Components
+    q A Function that <strike>either</strike> takes a <strike>Function</strike> <b>Component</b> as an argument and
+      returns a <strike>Function</strike> <b>Component</b> <strike>or both</strike>
+
+  section
+    h2 Higher Order Components
+    p Enhance a component with statically defined props:
+    pre
+      code
+        |
+          function enhanceComponent(WrappedComponent, addedProps) {
+            return class EnhancedComponent extends Component {
+
+              render() {
+                return &lt;WrappedComponent {...this.props} {...addedProps}/&gt;;
+              }
+            }
+          }
+
+          class MyInput extends Component {
+            render() {
+              return &lt;input type='text' label='My Input' { ...this.props }/&gt;;
+            }
+          }
+
+          &lt;MyInput defaultValue='Cool Talk'/&gt;;
+
+          const ReadOnlyInput = enchanceComponent(WrappedComponent, { readOnly: true });
+          &lt;ReadOnlyInput defaultValue='Cool Talk'/&gt;;
+
+  section
+    h2 Higher Order Components
+    p With HOCs you can:
+    ul
+      li Share common functionality across multiple components
+      li Hide business logic from presentational component
+      li Apply to ES6 Classes, ES5 createClass or function components
+    p You've probably used one already!
+    pre
+      code
+        | import { connect } from 'react-redux'; // HOC!
+          import { DragSource } from 'react-dnd'; // HOC!
+          import { Dimensions } from 'react-dimensions'; // HOC!
+          import { UserAuthWrapper } from 'redux-auth-wrapper' // More on this HOC later!
+
+section
+  section
+    h2 React Router
+
+  section
+    h2 React Router Basics
+    p Build nested UIs based on URL matching
+    p Swap in and out various components in response to URL changes
+    p JSX syntax for route definitions (also plain JS objects)
+    pre
+      code
+        | &lt;Route path="/" component={App}&gt;
+            &lt;Route path="login" component={Login}/&gt;
+            &lt;Route path="products" component={Products}&gt;
+              &lt;Route path=":productId" component={ProductDetails}/&gt;
+            &lt;/Route&gt;
+            &lt;Route path="admin" component={Admin}/&gt;
+          &lt;/Route&gt;
+
+  section
+    h3 Ideal Authentication & Authorization
+    ol
+      li Authentication - Only logged in users to the products page
+      li Authorization - Only administrators to the admin page
+      li Revoking authentication/authorization redirects
+      li Component logic is separate from Auth logic
+      li Deep linking with redirection support after login
+    pre
+      code
+        | &lt;Route path="/" component={App}&gt;
+            &lt;Route path="login" component={Login}/&gt;
+            &lt;Route path="products" component={Products}&gt;
+              &lt;Route path=":productId" component={ProductDetails}/&gt;
+            &lt;/Route&gt;
+            &lt;Route path="admin" component={Admin}/&gt;
+          &lt;/Route&gt;
+
+section
+  section
+    h2 Redux
+
+  section
+    h2 Redux Basics
+    ul
+      li State of your app is stored in an object tree inside a single store
+      li The only way to change the state tree is by emitting an action
+      li An action is just plain JS object describing what happened
+      li Reducers specify how the actions transform the state tree
+      li Reducers are pure functions, without side effects
+    br
+    br
+    small From http://redux.js.org/
+
+  section
+    h3 Redux Constants, Actions, and Reducers
+    pre
+      code style="max-height:700px"
+        | // Redux Constants
+          const USER_LOGGED_IN  = 'USER_LOGGED_IN';
+          const USER_LOGGED_OUT = 'USER_LOGGED_OUT';
+
+          // Redux actions
+          function login(userData) {
+            return {
+              type: USER_LOGGED_IN,
+              payload: userData,
+            };
+          }
+
+          function logout() {
+            return {
+              type: USER_LOGGED_OUT,
+            };
+          }
+
+          // User Data Reducer
+          function userReducer(state = null, { type, payload }) {
+            if (type === USER_LOGGED_IN) {
+              return payload;
+            }
+            if (type === USER_LOGGED_OUT) {
+              return null;
+            }
+            return state;
+          }
+
+  section
+    h2 React With Redux
+    p Access state inside Components and dispatch actions with <code>connect</code>
+    pre <code>import { connect } from 'react-redux';</code>
+    p <code>connect</code> is an HOC!
+    pre
+      code
+        | function mapStateToProps(state) {
+            return {
+              user: state.user,
+            };
+          }
+
+          // MyComponent will receive the prop 'user' from the state
+          connect(mapStateToProps)(MyComponent)
+    p Connect takes a function, often named <code>mapStateToProps</code>
+    p <code>mapStateToProps</code> is also referred to as a selector,
+    p because it <i>selects</i> data from the store
+
+
+
+section
+  section
+    h2 Building the HOC
+
+  section
+    h3 Basic Authentication HOC
+    pre
+      code style="max-height:700px"
+        | function requiresAuthentication(WrappedComponent) {
+            class AuthenticationWrapper extends Component {
+              static contextTypes = {
+                router: React.PropTypes.object
+              }
+
+              componentWillMount() {
+                if (this.props.user === null) {
+                  this.context.router.replace('/login');
+                }
+              }
+
+              componentWillReceiveProps(nextProps) {
+                if (this.props.user !== nextProps.user && nextProps.user === null) {
+                  this.context.router.replace('/login');
+                }
+              }
+
+              render() {
+                return this.props.user ? &lt;WrappedComponent {...this.props}/&gt; : null;
+              }
+            }
+
+            function mapStateToProps(state) {
+              return { user: state.user };
+            }
+
+            return connect(mapStateToProps)(AuthenticationWrapper);
+          }
+
+  section
+    h2 Using the HOC
+    p Apply in the routes definition
+    pre
+      code
+        | &lt;Route path="/" component={App}&gt;
+            &lt;Route path="login" component={Login}/&gt;
+            &lt;Route path="products" component={requiresAuthentication(Products)}&gt;
+              &lt;Route path=":productId" component={ProductDetails}/&gt;
+            &lt;/Route&gt;
+            &lt;Route path="admin" component={Admin}/&gt;
+          &lt;/Route&gt;
+
+    p Or apply in the component definition
+    pre
+      code
+        | class Products extends Component {
+           ...
+          }
+
+          export default requiresAuthentication(Products);
+
+
+section
+  section
+    h2 Redux Auth Wrapper
+
+  section
+    h2 Basic Configuration Example
+    pre
+      code
+        | const UserIsAuthenticated = UserAuthWrapper({
+            authSelector: state => state.user,
+          });
+
+          &lt;Route path="products" component={UserIsAuthenticated(Products)}&gt;
+    p Redirects when <code>authSelector</code> returns <code>{}</code> or <code>null</code>
+    p Redirects to <code>/login</code> when <code>state.user</code> is null
+    p Appends a query param of <code>redirect</code> with the original url
+
+  section
+    h2 Advanced Configuration
+    pre
+      code
+        | // Take the regular authentication & redirect to login from before
+          const UserIsAuthenticated = UserAuthWrapper({
+            authSelector: state => state.user,
+          });
+          // Admin Authorization, redirects non-admins to /products and without redirect param
+          const UserIsAdmin = UserAuthWrapper({
+            authSelector: state => state.user,
+            failureRedirectPath: '/products',
+            predicate: user => user.isAdmin,
+            allowRedirectBack: false
+          });
+          // Nesting of Higher Order Components!!
+          &lt;Route path="admin" component={UserIsAuthenticated(UserIsAdmin(Admin))}&gt;
+
+    p Order of the nesting is important
+    lu
+      li Unauthenticated Users redirected to <code>/login</code> before admin check
+      li Otherwise Admins sent to <code>/products</code> after completing their login
+
+  section
+    h2 Demo
+
+section
+  h2 Questions?
+
+section
+  h2 Useful Resources
+  p
+    a< href="https://github.com/mjrussell/redux-auth-wrapper" redux-auth-wrapper
+  p
+    a< href="https://medium.com/@dan_abramov/mixins-are-dead-long-live-higher-order-components-94a0d2f9e750#.1b3k4xriq" Mixins Are Dead. Long Live Composition
+  p
+    a< href="https://facebook.github.io/react/blog/2016/07/13/mixins-considered-harmful.html" Mixins Considered Harmful

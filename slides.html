@@ -210,13 +210,13 @@ import { UserAuthWrapper } from 'redux-auth-wrapper' // More on this HOC later!<
     </h2>
     <ul>
       <li>
-        State of your app is stored in an object tree inside a single store
+        Entire State of your app is an object tree inside a single store
       </li>
       <li>
         The only way to change the state tree is by emitting an action
       </li>
       <li>
-        An action is just plain JS object describing what happened
+        Actions are plain JS object describing what happened
       </li>
       <li>
         Reducers specify how the actions transform the state tree
@@ -277,7 +277,7 @@ function userReducer(state = null, { type, payload }) {
 
 // MyComponent will receive the prop 'user' from the state
 connect(mapStateToProps)(MyComponent)</code></pre>
-    <p>Connect takes a function, often named <code>mapStateToProps</code>
+    <p><code>Connect</code> takes a function, often named <code>mapStateToProps</code>
     </p>
     <p><code>mapStateToProps</code> is also referred to as a selector,
     </p>
@@ -367,10 +367,11 @@ export default requiresAuthentication(Products);</code></pre>
 &lt;Route path="products" component={UserIsAuthenticated(Products)}&gt;</code></pre>
     <p>Redirects when <code>authSelector</code> returns <code>{}</code> or <code>null</code>
     </p>
-    <p>Redirects to <code>/login</code> when <code>state.user</code> is null
+    <p>Redirects to <code>/login</code> by default
     </p>
     <p>Appends a query param of <code>redirect</code> with the original url
     </p>
+    <pre><code>http://localhost:8080/login?redirect=%2fproducts</code></pre>
   </section>
   <section>
     <h2>
